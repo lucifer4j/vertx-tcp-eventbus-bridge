@@ -100,7 +100,7 @@ public abstract class JsonRPCStreamEventBusBridgeImpl<T> implements Handler<T> {
     }
   }
 
-  protected boolean validate(JsonObject object) {
+  protected boolean validate(Object object) {
     OutputUnit outputUnit = requestValidator.validate(object);
     if (!outputUnit.getValid()) {
       log.error("Invalid message. Error: " + outputUnit.getErrors() + " . Message: " + object);
