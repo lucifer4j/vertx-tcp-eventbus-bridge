@@ -1,0 +1,3 @@
+name: JSON-RPC as wire protocol for the event bus TCP bridge
+description: Report for the Google Summer of Code on adding JSON-RPC as wire protocol for the Vert.x event bus TCP bridge
+theme: minima
