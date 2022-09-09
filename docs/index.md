@@ -1,5 +1,3 @@
-# Google Summer of Code 2022 - Final Report
-
 ## Summary
 
 To make the event bus bridge more accessible to users, we propose to add JSON-RPC as a message format for using
@@ -22,8 +20,8 @@ For instance, this is the format of a send message.
 
 <table>
     <tr>
-        <td>Vert.X Custom Format</td>
-        <td>JSON RPC Message format</td>
+        <th>Vert.X Custom Format</th>
+        <th>JSON RPC Message format</th>
     </tr>
     <tr>
         <td>
@@ -38,7 +36,6 @@ For instance, this is the format of a send message.
             "replyAddress": "<unique_id>"
         }
         ```
-
         </td>
         <td>
 
@@ -54,9 +51,7 @@ For instance, this is the format of a send message.
                 }
             }
         }
-
         ```
-
         </td>
     </tr>
 </table>
@@ -79,7 +74,6 @@ This is how a response from the respective bridges looks like:
             "send": true
         }
         ```
-
         </td>
         <td>
 
@@ -96,7 +90,6 @@ This is how a response from the respective bridges looks like:
             }
         }
         ```
-
         </td>
     </tr>
 </table>
