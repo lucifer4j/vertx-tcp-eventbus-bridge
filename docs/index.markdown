@@ -151,8 +151,10 @@ Over the course of the project, the following improvements have been added to th
 demonstrates the use of JSON RPC bridge using Websockets transport and browsers' WebSockets API. Websockets transport is at feature parity with the
 TCP one. It allows for bidirectional communication on the bridge and supports both subscribing and request/response models.
 * [HttpBridgeExample](https://github.com/lucifer4j/vertx-tcp-eventbus-bridge/blob/experimental/jsonrpc/src/main/java/examples/HttpBridgeExample.java)
-demonstrates the use of JSON RPC bridge using HTTP transport. The HTTP transport does not triggering communication from the server side.
-It supports request/response model. Some methods like publish and unregister are not supported on the HTTP transport because
-those don't make sense due to protocol limitations.
+demonstrates the use of JSON RPC bridge using HTTP transport. The HTTP transport does not support triggering communication from the server side.
+Therefore, sending/publishing from the bridge directly is not possible. Some methods like unregister are not supported on the HTTP transport because
+those don't make sense (ending a request means unregistering automatically and the client cannot send data after a request has been made to
+unregister manually). The transport supports request/response model well.
 * [HttpSSEBridgeExample](https://github.com/lucifer4j/vertx-tcp-eventbus-bridge/blob/experimental/jsonrpc/src/main/java/examples/HttpSSEBridgeExample.java)
-shows how to use the JSON RPC bridge with browser SSE APIs.
+shows how to use the JSON RPC bridge with browser SSE APIs to register to the event bus addresses. Once a client has registered using SSE,
+it can normally receive send/publish events from those addresses on the bridge.
