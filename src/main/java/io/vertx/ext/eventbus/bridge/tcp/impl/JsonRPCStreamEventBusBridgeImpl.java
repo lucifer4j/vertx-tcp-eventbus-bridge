@@ -34,17 +34,11 @@ import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.OutputUnit;
 import io.vertx.json.schema.Validator;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Abstract TCP EventBus bridge. Handles all common socket operations but has no knowledge on the payload.
@@ -99,32 +93,16 @@ public abstract class JsonRPCStreamEventBusBridgeImpl<T> implements Handler<T> {
   protected void dispatch(Consumer<JsonObject> socket, String method, Object id, JsonObject msg, Map<String, MessageConsumer<?>> registry, Map<String, Message<JsonObject>> replies) {
     switch (method) {
       case "send":
-        checkCallHook(
-          () -> new BridgeEventImpl<>(BridgeEventType.SEND, msg, null),
-          () -> send(socket, id, msg, registry, replies),
-          () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
-        );
+        invokeMethod(socket, BridgeEventType.SEND, id, msg, () -> send(socket, id, msg, registry, replies));
         break;
       case "publish":
-        checkCallHook(
-          () -> new BridgeEventImpl<>(BridgeEventType.SEND, msg, null),
-          () -> publish(socket, id, msg, registry, replies),
-          () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
-        );
+        invokeMethod(socket, BridgeEventType.PUBLISH, id, msg, () -> publish(socket, id, msg, registry, replies));
         break;
       case "register":
-        checkCallHook(
-          () -> new BridgeEventImpl<>(BridgeEventType.REGISTER, msg, null),
-          () -> register(socket, id, msg, registry, replies),
-          () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
-        );
+        invokeMethod(socket, BridgeEventType.REGISTER, id, msg, () -> register(socket, id, msg, registry, replies));
         break;
       case "unregister":
-        checkCallHook(
-          () -> new BridgeEventImpl<>(BridgeEventType.UNREGISTER, msg, null),
-          () -> unregister(socket, id, msg, registry, replies),
-          () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
-        );
+        invokeMethod(socket, BridgeEventType.UNREGISTER, id, msg, () -> register(socket, id, msg, registry, replies));
         break;
       case "ping":
         JsonRPCHelper.response(id, "pong", socket);
@@ -134,6 +112,16 @@ public abstract class JsonRPCStreamEventBusBridgeImpl<T> implements Handler<T> {
         break;
     }
   }
+
+  protected void invokeMethod(Consumer<JsonObject> socket, BridgeEventType eventType,
+                              Object id, JsonObject msg, Runnable method) {
+    checkCallHook(
+      () -> new BridgeEventImpl<>(eventType, msg, null),
+      method,
+      () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
+    );
+  }
+
 
   protected void unregister(Consumer<JsonObject> socket, Object id, JsonObject msg, Map<String, MessageConsumer<?>> registry, Map<String, Message<JsonObject>> replies) {
     final JsonObject params = msg.getJsonObject("params", EMPTY);

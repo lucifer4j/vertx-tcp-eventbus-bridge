@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.eventbus.bridge.tcp.BridgeEvent;
 import io.vertx.ext.eventbus.bridge.tcp.JsonRPCBridgeOptions;
+import io.vertx.ext.eventbus.bridge.tcp.impl.protocol.JsonRPCHelper;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -112,6 +113,47 @@ public class HttpJsonRPCStreamEventBusBridgeImpl extends JsonRPCStreamEventBusBr
       },
       () ->  socket.response().setStatusCode(500).setStatusMessage("Internal Server Error").end()
     );
+  }
+
+  public void send(Consumer<JsonObject> socket, Object id, JsonObject msg) {
+    checkCallHook(() -> new BridgeEventImpl<>(BridgeEventType.SOCKET_CREATED, null, null));
+    checkCallHook(
+      () -> new BridgeEventImpl<>(BridgeEventType.SEND, msg, null),
+      () -> send(socket, id, msg, new ConcurrentHashMap<>(), replies),
+      () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
+    );
+    checkCallHook(() -> new BridgeEventImpl<>(BridgeEventType.SOCKET_CLOSED, null, null));
+  }
+
+  public void publish(Consumer<JsonObject> socket, Object id, JsonObject msg) {
+    checkCallHook(() -> new BridgeEventImpl<>(BridgeEventType.SOCKET_CREATED, null, null));
+    checkCallHook(
+      () -> new BridgeEventImpl<>(BridgeEventType.PUBLISH, msg, null),
+      () -> publish(socket, id, msg, new ConcurrentHashMap<>(), replies),
+      () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
+    );
+    checkCallHook(() -> new BridgeEventImpl<>(BridgeEventType.SOCKET_CLOSED, null, null));
+  }
+
+  public void register(Consumer<JsonObject> socket, Object id, JsonObject msg) {
+    checkCallHook(() -> new BridgeEventImpl<>(BridgeEventType.SOCKET_CREATED, null, null));
+    checkCallHook(
+      () -> new BridgeEventImpl<>(BridgeEventType.REGISTER, msg, null),
+      () -> register(socket, id, msg, new ConcurrentHashMap<>(), replies),
+      () -> JsonRPCHelper.error(id, -32040, "access_denied", socket)
+    );
+    // TODO: incorrect, the event gets called as soon the registration completes but the registered address may send messages later
+    // looked into SockJS but can't see how it can help because we always have access to SockJSSocket there
+    // we could accept a HttpRequest here analogously I guess though but may not always be desirable?
+    //
+    // similarly for handling the case of replies from same socket, we need to maintain some state but
+    // maintaining it on the consumer object would be wrong because a user can create () -> socket.write()
+    // each time when calling register and even though the same underlying socket is being written to
+    // we'd consider it to be different.
+    checkCallHook(() -> {
+      System.out.println("Socket Closed event");
+      return new BridgeEventImpl<>(BridgeEventType.SOCKET_CLOSED, null, null);
+    });
   }
 
 
